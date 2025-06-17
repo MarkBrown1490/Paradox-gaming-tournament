@@ -22,6 +22,10 @@ function saveResults(newResults) {
 function loadSetup() {
   const container = document.getElementById("teamSetupContainer");
   container.innerHTML = "";
+
+  // Check if names are locked (already saved once)
+  const namesLocked = localStorage.getItem("teamsLocked") === "true";
+
   teams.forEach((team, idx) => {
     const input = document.createElement("input");
     input.type = "text";
@@ -29,18 +33,28 @@ function loadSetup() {
     input.dataset.idx = idx;
     input.placeholder = `Team ${idx + 1}`;
     input.classList.add("team-input");
+    input.disabled = namesLocked; // disable if already saved
     container.appendChild(input);
   });
 
-  const saveBtn = document.createElement("button");
-  saveBtn.textContent = "Save Teams";
-  saveBtn.onclick = () => {
-    const inputs = container.querySelectorAll("input.team-input");
-    const newTeams = Array.from(inputs).map(i => i.value.trim() || `Team ${i.dataset.idx}`);
-    saveTeams(newTeams);
-    alert("Teams saved!");
-  };
-  container.appendChild(saveBtn);
+  if (!namesLocked) {
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "Save Team Names (Lock Forever)";
+    saveBtn.onclick = () => {
+      const inputs = container.querySelectorAll("input.team-input");
+      const newTeams = Array.from(inputs).map(i => i.value.trim() || `Team ${i.dataset.idx}`);
+      saveTeams(newTeams);
+      localStorage.setItem("teamsLocked", "true"); // prevent changes
+      alert("Teams saved and locked! They cannot be changed anymore.");
+      location.reload(); // refresh to reflect locked state
+    };
+    container.appendChild(saveBtn);
+  } else {
+    const lockedMsg = document.createElement("p");
+    lockedMsg.classList.add("white-text");
+    lockedMsg.innerHTML = "✅ Team names have been set and locked. You cannot change them.";
+    container.appendChild(lockedMsg);
+  }
 }
 
 // === MATCHES PAGE FUNCTIONS ===

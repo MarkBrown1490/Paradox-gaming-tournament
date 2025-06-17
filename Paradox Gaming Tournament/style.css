@@ -224,3 +224,10 @@ button:hover {
   background-color: darkorange;
   transform: translateY(-2px);
 }
+
+input[disabled] {
+  background-color: #222;
+  color: #999;
+  cursor: not-allowed;
+  border: 1px solid #555;
+}
