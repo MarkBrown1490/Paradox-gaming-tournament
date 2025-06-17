@@ -1,36 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Match Schedule - Paradox Gaming Tournament</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
-  <script defer src="script.js"></script>
-  <style>
-    body {
-      font-family: 'Orbitron', sans-serif;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Match Schedule</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="black-bg">
+<body>
   <div class="container">
-    <img src="images/logo.png" alt="Paradox Gaming Tournament Logo" class="logo">
-
-    <!-- Navigation -->
-    <div class="nav-buttons">
+    <header>
+      <img src="images/logo.png" class="logo" alt="Tournament Logo" />
+      <h1>Match Schedule</h1>
+    </header>
+    <nav class="nav-buttons">
       <a href="index.html" class="button-link">Home</a>
-      <a href="setup.html" class="button-link">Set Teams</a>
-      <a href="matches.html" class="button-link">Match Schedule</a>
+      <a href="matches.html" class="button-link">Matches</a>
       <a href="leaderboard.html" class="button-link">Leaderboard</a>
       <a href="bracket.html" class="button-link">Bracket</a>
-    </div>
-
-    <h2 class="orange-text">Match Schedule</h2>
-    <p class="white-text">Enter the match dates and update results live.</p>
-
-    <!-- Match schedule will be inserted here -->
-    <div id="matchesContainer" class="white-text"></div>
+      <a href="teams.html" class="button-link">Teams</a>
+    </nav>
+    <section id="matches"></section>
   </div>
+  <script src="script.js"></script>
 </body>
 </html>

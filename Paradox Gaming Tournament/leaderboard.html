@@ -1,53 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Leaderboard - Paradox Gaming Tournament</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
-  <script defer src="script.js"></script>
-  <style>
-    body {
-      font-family: 'Orbitron', sans-serif;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      color: white;
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid orange;
-      text-align: center;
-    }
-    th {
-      background-color: orange;
-      color: black;
-    }
-    tr:nth-child(even) {
-      background-color: #2c2c2c;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Leaderboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="black-bg">
+<body>
   <div class="container">
-    <img src="images/logo.png" alt="Paradox Gaming Tournament Logo" class="logo" />
-
-    <!-- Navigation -->
-    <div class="nav-buttons">
+    <header>
+      <img src="images/logo.png" class="logo" alt="Tournament Logo" />
+      <h1>Leaderboard</h1>
+    </header>
+    <nav class="nav-buttons">
       <a href="index.html" class="button-link">Home</a>
-      <a href="setup.html" class="button-link">Set Teams</a>
-      <a href="matches.html" class="button-link">Match Schedule</a>
+      <a href="matches.html" class="button-link">Matches</a>
       <a href="leaderboard.html" class="button-link">Leaderboard</a>
       <a href="bracket.html" class="button-link">Bracket</a>
-    </div>
-
-    <h2 class="orange-text">Live Leaderboard</h2>
-    <p class="white-text">Updated in real time based on match results.</p>
-
-    <div id="leaderboardContainer"></div>
+      <a href="teams.html" class="button-link">Teams</a>
+    </nav>
+    <section id="leaderboard"></section>
   </div>
+  <script src="script.js"></script>
 </body>
 </html>
