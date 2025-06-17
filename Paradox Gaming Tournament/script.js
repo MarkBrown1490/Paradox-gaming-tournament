@@ -1,29 +1,43 @@
-// Initialize teams and results from localStorage or defaults
+// Load saved team names or fallback to default
 let teams = JSON.parse(localStorage.getItem("teams")) || [
   "Team 1", "Team 2", "Team 3", "Team 4", "Team 5",
   "Team 6", "Team 7", "Team 8", "Team 9", "Team 10"
 ];
 
-let results = JSON.parse(localStorage.getItem("results")) || {};
+const defaultMatches = [];
 
-// Save teams to localStorage
 function saveTeams(newTeams) {
   teams = newTeams;
   localStorage.setItem("teams", JSON.stringify(teams));
+  generateAndSaveMatchSchedule(); // regenerate if team names change
 }
 
-// Save results to localStorage
-function saveResults(newResults) {
-  results = newResults;
-  localStorage.setItem("results", JSON.stringify(results));
+function generateRoundRobinMatches(teams) {
+  const matches = [];
+  for (let i = 0; i < teams.length - 1; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      matches.push([i, j]); // store by index
+    }
+  }
+  return matches;
 }
 
-// === SETUP PAGE FUNCTIONS ===
+function generateAndSaveMatchSchedule() {
+  const matchups = generateRoundRobinMatches(teams);
+  const savedMatches = matchups.map((match) => ({
+    team1: match[0],
+    team2: match[1],
+    date: "",
+    result: ""
+  }));
+  localStorage.setItem("matches", JSON.stringify(savedMatches));
+}
+
+// Setup page: Only allow team name input once
 function loadSetup() {
   const container = document.getElementById("teamSetupContainer");
   container.innerHTML = "";
 
-  // Check if names are locked (already saved once)
   const namesLocked = localStorage.getItem("teamsLocked") === "true";
 
   teams.forEach((team, idx) => {
@@ -33,7 +47,7 @@ function loadSetup() {
     input.dataset.idx = idx;
     input.placeholder = `Team ${idx + 1}`;
     input.classList.add("team-input");
-    input.disabled = namesLocked; // disable if already saved
+    input.disabled = namesLocked;
     container.appendChild(input);
   });
 
@@ -44,193 +58,167 @@ function loadSetup() {
       const inputs = container.querySelectorAll("input.team-input");
       const newTeams = Array.from(inputs).map(i => i.value.trim() || `Team ${i.dataset.idx}`);
       saveTeams(newTeams);
-      localStorage.setItem("teamsLocked", "true"); // prevent changes
+      localStorage.setItem("teamsLocked", "true");
       alert("Teams saved and locked! They cannot be changed anymore.");
-      location.reload(); // refresh to reflect locked state
+      location.reload();
     };
     container.appendChild(saveBtn);
   } else {
-    const lockedMsg = document.createElement("p");
-    lockedMsg.classList.add("white-text");
-    lockedMsg.innerHTML = "✅ Team names have been set and locked. You cannot change them.";
-    container.appendChild(lockedMsg);
+    const msg = document.createElement("p");
+    msg.classList.add("white-text");
+    msg.innerHTML = "✅ Team names are locked and cannot be changed.";
+    container.appendChild(msg);
   }
 }
 
-// === MATCHES PAGE FUNCTIONS ===
-function generateMatches() {
-  // Round-robin all pairings
-  const matchList = [];
-  for(let i = 0; i < teams.length; i++) {
-    for(let j = i + 1; j < teams.length; j++) {
-      matchList.push(`${teams[i]} vs ${teams[j]}`);
-    }
-  }
-  return matchList;
-}
-
+// Match Schedule Page
 function loadMatches() {
-  const tbody = document.querySelector("#matchesTable tbody");
-  tbody.innerHTML = "";
+  const container = document.getElementById("matchesContainer");
+  container.innerHTML = "";
 
-  const matches = generateMatches();
+  const savedMatches = JSON.parse(localStorage.getItem("matches")) || [];
+  const matchups = generateRoundRobinMatches(teams);
 
-  matches.forEach((match, idx) => {
-    const tr = document.createElement("tr");
+  matchups.forEach((match, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("match-row");
 
-    // Cells: #, Match, Date input, Winner select, Action (Save)
-    const matchKey = match.replace(/\s+/g, "_");
-
-    // Match number
-    const tdNum = document.createElement("td");
-    tdNum.textContent = idx + 1;
-
-    // Match teams
-    const tdMatch = document.createElement("td");
-    tdMatch.textContent = match;
-
-    // Date input
-    const tdDate = document.createElement("td");
     const dateInput = document.createElement("input");
     dateInput.type = "date";
-    // Load saved date if any
-    const savedDate = localStorage.getItem(matchKey + "_date");
-    if(savedDate) dateInput.value = savedDate;
-    dateInput.onchange = () => {
-      localStorage.setItem(matchKey + "_date", dateInput.value);
-    }
-    tdDate.appendChild(dateInput);
+    dateInput.value = savedMatches[index]?.date || "";
+    dateInput.onchange = () => saveMatch(index, "date", dateInput.value);
 
-    // Winner select
-    const tdWinner = document.createElement("td");
-    const winnerSelect = document.createElement("select");
-    const optionEmpty = document.createElement("option");
-    optionEmpty.value = "";
-    optionEmpty.textContent = "Select Winner";
-    winnerSelect.appendChild(optionEmpty);
+    const team1 = teams[match[0]];
+    const team2 = teams[match[1]];
 
-    teams.forEach(team => {
-      if(match.includes(team)) {
-        const opt = document.createElement("option");
-        opt.value = team;
-        opt.textContent = team;
-        winnerSelect.appendChild(opt);
-      }
-    });
-    winnerSelect.value = results[match] || "";
-    tdWinner.appendChild(winnerSelect);
+    const label = document.createElement("span");
+    label.textContent = `${team1} vs ${team2}`;
+    label.classList.add("white-text");
+    label.style.margin = "0 10px";
 
-    // Action: Save button
-    const tdAction = document.createElement("td");
-    const saveBtn = document.createElement("button");
-    saveBtn.textContent = "Save Result";
-    saveBtn.onclick = () => {
-      if(winnerSelect.value === "") {
-        alert("Please select a winner");
-        return;
-      }
-      results[match] = winnerSelect.value;
-      saveResults(results);
-      alert("Result saved!");
-      // Trigger live leaderboard update if open on another tab
-      window.dispatchEvent(new Event('storage'));
-    };
-    tdAction.appendChild(saveBtn);
-
-    tr.appendChild(tdNum);
-    tr.appendChild(tdMatch);
-    tr.appendChild(tdDate);
-    tr.appendChild(tdWinner);
-    tr.appendChild(tdAction);
-
-    tbody.appendChild(tr);
-  });
-}
-
-// === LEADERBOARD PAGE FUNCTIONS ===
-function loadLeaderboard() {
-  updateLeaderboard();
-
-  // Listen for storage changes to update live
-  window.addEventListener("storage", (e) => {
-    if(e.key === "results") {
-      updateLeaderboard();
-    }
-  });
-}
-
-function updateLeaderboard() {
-  const tbody = document.querySelector("#leaderboardTable tbody");
-  if(!tbody) return;
-
-  tbody.innerHTML = "";
-
-  const stats = {};
-  teams.forEach(team => stats[team] = { played: 0, wins: 0, losses: 0 });
-
-  const storedResults = JSON.parse(localStorage.getItem("results") || "{}");
-
-  Object.keys(storedResults).forEach(match => {
-    const winner = storedResults[match];
-    const [team1, , team2] = match.split(" vs ");
-    const loser = winner === team1 ? team2 : team1;
-    stats[team1].played++;
-    stats[team2].played++;
-    stats[winner].wins++;
-    stats[loser].losses++;
-  });
-
-  const sorted = Object.entries(stats).sort((a,b) => b[1].wins - a[1].wins);
-
-  sorted.forEach(([team, s]) => {
-    const winPct = s.played ? ((s.wins / s.played) * 100).toFixed(1) + "%" : "0%";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${team}</td>
-      <td>${s.played}</td>
-      <td>${s.wins}</td>
-      <td>${s.losses}</td>
-      <td>${winPct}</td>
+    const resultInput = document.createElement("select");
+    resultInput.innerHTML = `
+      <option value="">-- Result --</option>
+      <option value="${team1}">${team1} wins</option>
+      <option value="${team2}">${team2} wins</option>
     `;
-    tbody.appendChild(tr);
+    resultInput.value = savedMatches[index]?.result || "";
+    resultInput.onchange = () => saveMatch(index, "result", resultInput.value);
+
+    wrapper.appendChild(dateInput);
+    wrapper.appendChild(label);
+    wrapper.appendChild(resultInput);
+
+    container.appendChild(wrapper);
   });
 }
 
-// === BRACKET PAGE FUNCTIONS ===
+function saveMatch(index, key, value) {
+  const savedMatches = JSON.parse(localStorage.getItem("matches")) || [];
+  savedMatches[index] = savedMatches[index] || {
+    team1: teams.indexOf(savedMatches[index]?.team1),
+    team2: teams.indexOf(savedMatches[index]?.team2),
+    date: "",
+    result: ""
+  };
+  savedMatches[index][key] = value;
+  localStorage.setItem("matches", JSON.stringify(savedMatches));
+}
+
+// Leaderboard Page
+function loadLeaderboard() {
+  const container = document.getElementById("leaderboardContainer");
+  container.innerHTML = "";
+
+  const savedMatches = JSON.parse(localStorage.getItem("matches")) || [];
+
+  const leaderboard = teams.map(name => ({
+    name,
+    played: 0,
+    wins: 0,
+    losses: 0,
+    points: 0
+  }));
+
+  savedMatches.forEach(match => {
+    if (match && match.result) {
+      const winnerIndex = leaderboard.findIndex(t => t.name === match.result);
+      const team1 = teams[match.team1];
+      const team2 = teams[match.team2];
+      const loserName = team1 === match.result ? team2 : team1;
+      const loserIndex = leaderboard.findIndex(t => t.name === loserName);
+
+      if (winnerIndex >= 0) {
+        leaderboard[winnerIndex].wins++;
+        leaderboard[winnerIndex].played++;
+        leaderboard[winnerIndex].points += 3;
+      }
+      if (loserIndex >= 0) {
+        leaderboard[loserIndex].losses++;
+        leaderboard[loserIndex].played++;
+      }
+    }
+  });
+
+  leaderboard.sort((a, b) => b.points - a.points || b.wins - a.wins);
+
+  const table = document.createElement("table");
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Team</th>
+        <th>Played</th>
+        <th>Wins</th>
+        <th>Losses</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${leaderboard.map((team, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${team.name}</td>
+          <td>${team.played}</td>
+          <td>${team.wins}</td>
+          <td>${team.losses}</td>
+          <td>${team.points}</td>
+        </tr>
+      `).join("")}
+    </tbody>
+  `;
+  container.appendChild(table);
+}
+
+// Bracket Page (basic animated bracket generator)
 function loadBracket() {
-  const bracket = document.getElementById("bracketContainer");
-  if(!bracket) return;
+  const container = document.getElementById("bracketContainer");
+  container.innerHTML = "";
 
-  bracket.innerHTML = "";
+  const savedMatches = JSON.parse(localStorage.getItem("matches")) || [];
+  const winners = new Set(savedMatches.map(m => m.result).filter(r => r));
 
-  const winCount = {};
-  teams.forEach(team => winCount[team] = 0);
+  // Display a simple vertical flow bracket
+  const roundDiv = document.createElement("div");
+  roundDiv.classList.add("bracket-round");
 
-  const storedResults = JSON.parse(localStorage.getItem("results") || "{}");
-  Object.values(storedResults).forEach(winner => {
-    if(winner) winCount[winner]++;
-  });
-
-  const sorted = Object.entries(winCount).sort((a, b) => b[1] - a[1]);
-
-  sorted.forEach(([team, wins], index) => {
+  teams.forEach(team => {
     const div = document.createElement("div");
-    div.className = "bracket-slot";
-    div.style.animationDelay = `${index * 0.1}s`;
-    div.innerHTML = `<strong>${team}</strong><br>Wins: ${wins}`;
-    bracket.appendChild(div);
+    div.classList.add("bracket-team");
+    div.textContent = team;
+    if (winners.has(team)) div.classList.add("bracket-winner");
+    roundDiv.appendChild(div);
   });
+
+  container.appendChild(roundDiv);
 }
 
-// === On Page Load Dispatcher ===
-document.addEventListener("DOMContentLoaded", () => {
-  if(location.pathname.includes("setup.html")) {
-    loadSetup();
-  } else if(location.pathname.includes("matches.html")) {
-    loadMatches();
-  } else if(location.pathname.includes("leaderboard.html")) {
-    loadLeaderboard();
-  } else if(location.pathname.includes("bracket.html")) {
-    loadBracket();
-  }
+// 🧠 Auto-load relevant function per page
+window.addEventListener("DOMContentLoaded", () => {
+  const path = window.location.pathname;
+
+  if (path.includes("setup")) loadSetup();
+  else if (path.includes("matches")) loadMatches();
+  else if (path.includes("leaderboard")) loadLeaderboard();
+  else if (path.includes("bracket")) loadBracket();
 });
