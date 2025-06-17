@@ -14,12 +14,14 @@ body {
 }
 
 .container {
-    max-width: 960px;
-    margin: auto;
-    background: #1a1a1a;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(255, 165, 0, 0.4);
+    background-color: #2a2a2a; /* Darker grey fallback */
+    background: linear-gradient(to bottom, #2a2a2a, #3a3a3a); /* Optional gradient */
+    border: 2px solid orange;
+    padding: 20px 30px;
+    border-radius: 10px;
+    max-width: 900px;
+    margin: 30px auto;
+    box-shadow: 0 0 20px rgba(255, 165, 0, 0.25);
 }
 
 h1, h2 {
@@ -97,7 +99,7 @@ input[type="text"], input[type="date"], select {
 
 .logo {
     display: block;
-    max-width: 160px;
+    max-width: 280px;
     margin: 0 auto 20px;
 }
 
@@ -195,4 +197,30 @@ button {
 
 button:hover {
   background-color: darkorange;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.button-link {
+  background-color: orange;
+  color: black;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(255, 165, 0, 0.3);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.button-link:hover {
+  background-color: darkorange;
+  transform: translateY(-2px);
 }
